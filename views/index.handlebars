@@ -1,0 +1,367 @@
+<script>
+    $(function () {
+      	var socket = io();
+
+	    // variables
+	    var alertAdded = false;
+      	var lastSendingUser;
+      	var meuser = "{{user.username}}";
+	    var msgs = document.getElementById("messages");
+	    var form = document.getElementById("messageForm");
+		var msgsByID= $('#messages');
+
+
+	    // my functions
+	    function updateUsers(users,onlineUsers){
+			var usersList = $('#userlist');
+			usersList.empty();
+			// <li>ahmad<span class="online-ind hidden"></span></li>
+			$.each(users, function(i, item) {
+				var username = item.username;
+				if (username == meuser) {
+					username = 'you';
+				};
+				var li = $('<li/>')
+					.attr("id",item._id)
+					.text(username)
+					.append('<span class="online-ind hidden"></span>')
+					.append('<span class="typing-ind hidden"></span>')
+					.appendTo(usersList);
+				if (item.username in onlineUsers) {
+					li.find('.online-ind').removeClass('hidden');
+				} else {
+					li.find('.online-ind').addClass('hidden');
+				}
+			});
+        }
+
+        function updateChats(chats){
+			var chatsList = $('#user-chats');
+			chatsList.empty();
+			$('#chatNo').text(chats.length+' chats');
+			$.each(chats, function(i, item) {
+				if (item.name.match("^\'\"*")) {
+					item.name = item.name.replace("\'\"*", '');
+					item.name = item.name.replace(meuser, '');
+				};
+				var li = $('<li/>')
+					.attr("id",item._id)
+					.attr("class","list-group-item chatitem")
+					.text(item.name)
+				// if (item.lastMessage) {
+				// 	li.append('<br><small>'+item.lastMessage.sender+':'+item.lastMessage.message.substring(0,10)+'</small>')
+				// };
+				li.appendTo(chatsList);
+			});
+        }
+
+        function addMessage(me, sender, message, date, dontScroll){
+          	var isScrolledToBottom = msgs.scrollHeight - msgs.clientHeight <= msgs.scrollTop + 1;
+			var img = '/images/200x200_avatar.png';
+            // var time = date.getHours()+':'+date.getMinutes();
+            var time = date.toLocaleTimeString().replace(/:\d+ /, ' ');
+            // time = date;
+			var messageHTML;
+			if (lastSendingUser != sender || alertAdded){
+				alertAdded = false;
+				// sameUser = false;
+				lastSendingUser = sender;
+				if (me == sender) {
+					messageHTML = '<li class="media message-li text-right"><div class="media-body"><p class="ind-msg">'+message+'<small class="msgtime">'+time+'</small></p></div><div class="media-right"><a href="#"><img class="media-object avatar" src="'+img+'" alt="..."></a></div></li>';
+				} else {
+					messageHTML = '<li class="media message-li"><div class="media-left"><a href="#"><img class="media-object avatar" src="'+img+'" alt="..."></a></div><div class="media-body"><p class="ind-msg"><a class="msg-username">'+sender+'</a><br>'+message+'<small class="msgtime">'+time+'</small></p></div></li>';
+				}
+				$('#messages').append(messageHTML);
+			}
+			else {
+				messageHTML = '<p class="ind-msg">'+message+'<small class="msgtime">'+time+'</small></p>';
+				$('#messages').find('.message-li:last-child .media-body').append(messageHTML);
+			}
+			if (!dontScroll) {
+				if(isScrolledToBottom) msgs.scrollTop = msgs.scrollHeight - msgs.clientHeight;
+			}
+        }
+
+		function showKKBar(text, time){
+			var kitkat = $('#kitkat');
+			var li = $('<li/>')
+					.attr("class","kkbar")
+					.text(text)
+					.prependTo(kitkat);
+			li.fadeIn(500);
+			setTimeout(function () {
+				li.fadeOut(500, function(){
+					li.remove();
+				});
+			}, time);
+		}
+
+        // socket events
+        socket.on('user action',function(message){
+			showKKBar(message, 2000);
+			socket.emit('update activechat users')
+		})
+
+		socket.on('update activechat users',function(chatusers, onlineusers){
+			updateUsers(chatusers,onlineusers);
+        });
+
+        socket.on('user not auth chat',function(){
+         	$('#chatcontainer').html("no chats for you");
+        });
+
+        // socket.on('chat user connected',function(data){
+        //   	var isScrolledToBottom = msgs.scrollHeight - msgs.clientHeight <= msgs.scrollTop + 1;
+        // 	$('#messages').append($('<li class="alertbox text-center">').html('<small>'+data.username+' has connected.</small>'));
+        //   	alertAdded = true;
+        //   	console.log('chat user connected is entered and data is',data);
+        //  	updateUsers(data.chatusers,data.onlineusers);
+        //   	if(isScrolledToBottom) msgs.scrollTop = msgs.scrollHeight - msgs.clientHeight;
+        // });
+
+        // socket.on('chat user disconnected',function(data){
+        //   var isScrolledToBottom = msgs.scrollHeight - msgs.clientHeight <= msgs.scrollTop + 1;
+        //   $('#messages').append($('<li class="alertbox text-center">').html('<small>'+data.username+' has disconnected.</small>'));
+        //   alertAdded = true;
+        //   if(isScrolledToBottom) msgs.scrollTop = msgs.scrollHeight - msgs.clientHeight;
+        //   updateUsers(data.chatusers,data.onlineusers);
+        // });
+
+        socket.on('chat message',function(msg,sender){
+            var date = new Date(msg.date);
+	   	    addMessage(meuser, msg.sender, msg.message,date);
+        });
+
+        socket.on('load main chat users',function (loadedChatUsers) {
+        	var usersToSelect = $('#select-users');
+        	console.log(usersToSelect);
+        	usersToSelect.empty();
+        	$.each(loadedChatUsers, function(i, item) {
+        		if(item.username != meuser){
+        			var option = $('<option/>')
+					.attr("value",item._id)
+					.text(item.username)
+					.appendTo(usersToSelect);
+        		}
+			});
+			usersToSelect.selectpicker('refresh');
+        });
+
+        socket.on('update chats', function () {
+        	socket.emit('update my chats');
+        })
+
+        socket.on('update my chats', function (chatlist) {
+        	updateChats(chatlist);
+        })
+
+        socket.on('chat switch',function(data){
+    		if (data.chat.name.match("^\'\"*")) {
+				data.chat.name = data.chat.name.replace("\'\"*", '');
+				data.chat.name = data.chat.name.replace(meuser, '');
+			};
+        	$('#chatName').text(data.chat.name);
+        	updateUsers(data.chat.users,data.onlineusers);
+        	msgsByID.empty();
+        	alertAdded = true;
+        	if (data.chat.messages.length>=15) {
+        		$('#messages').append($('<li class="alertbox text-center loadmorebtn" value=1>').html('<small>load more</small>'));
+        	}else {
+        		$('#messages').append($('<li class="alertbox text-center">').html('<small>Head of Chat</small>'));
+        	}
+        	for (var i = 0; i < data.chat.messages.length; i++) {
+	   			addMessage(meuser, data.chat.messages[i].sender, data.chat.messages[i].message, new Date(data.chat.messages[i].date))
+        	};
+        });
+
+
+		socket.on('load more messages', function(messages){
+			msgsByID.empty();
+        	alertAdded = true;
+        	$('#messages').append($('<li class="alertbox text-center">').html('<small>Head of Chat</small>'));
+        	for (var i = 0; i < messages.length; i++) {
+	   			addMessage(meuser, messages[i].sender, messages[i].message, new Date(messages[i].date), true)
+        	};
+		})
+
+
+        $('#m').on('keypress', function(e){
+          if (e.keyCode==13) {
+            $("#sendbtn").trigger('click');
+            e.preventDefault();
+          };
+        });
+
+        $('#messageForm').submit(function(){
+          var msg = $('#m').val();
+          var date = new Date();
+          if (msg != "") {
+	          socket.emit('chat message', msg);
+		   	  addMessage(meuser, meuser, msg,date);
+	          $('#m').val('');
+          };
+          return false;
+        });
+
+        $('#add-chat').on('click', function(){
+        	// load all users
+        	socket.emit('load main chat users');
+        });
+        
+		$('#submit-newchat').on('click',function(){
+        	$('#newChatForm').submit();
+        })
+
+		$('#newChatForm').submit(function(){
+			var chatname = $('#chat-name').val();
+			var selectedusers = []; 
+			var selectedusernames = [];
+			$('#select-users :selected').each(function(i, selected){ 
+			  selectedusers[i] = $(selected).attr('value'); 
+			  selectedusernames[i] = $(selected).text(); 
+			});
+
+			if (selectedusers.length==1) {
+				var user = {
+					id: selectedusers[0],
+					username: selectedusernames[0]
+				}
+				// console.log(user);
+				$('#select-users').selectpicker('deselectAll');
+				$('#chat-name').val('');
+				socket.emit('new dual chat', user);
+				$('#myModal').modal('hide')
+			};
+
+			if (chatname!=''&&selectedusers.length>0) {
+				var data = {
+					chatname : chatname,
+					selectedusers: selectedusers
+				}
+				console.log(data);
+				$('#select-users').selectpicker('deselectAll');
+				$('#chat-name').val('');
+				socket.emit('new chat', data);
+				$('#myModal').modal('hide')
+			};
+			return false;
+		})
+
+		$(document).on('click', '#user-chats .chatitem', function(){
+			socket.emit('chat switch', $(this).attr('id'));
+		});
+
+		$(document).on('click', '#messages .loadmorebtn', function(){
+			var c = $(this).attr("value");
+			socket.emit('load more messages', c++);
+			$(this).attr("value",c);
+		});
+		
+
+		$(document).on('click', '#userlist li', function(){
+			var user = {
+				id: $(this).attr('id'),
+				username: $(this).text()
+			}
+			if (user.username != 'you') {
+				// console.log(user);
+				socket.emit('new dual chat', user);
+			}else {
+				showKKBar('find friends, don\'t chat with yourself', 3000);
+			}
+			
+		});
+
+		// function textAreaAdjust(o) {
+		//   o.style.height = "1px";
+		//   if (o.scrollHeight<80) {
+		//  	o.style.height = (20+o.scrollHeight)+"px";
+		//   }else {
+		//   	o.style.height = (o.scrollHeight)+"px";
+		//   }
+		// }
+		
+
+    })
+</script>
+<ul id="kitkat">
+</ul>
+<div id="chatcontainer" class="row">
+	<div class="col-sm-3">
+	  <div class="panel panel-default">
+	    <div class="panel-heading" id="userchats">
+	      <h3 class="panel-title" >Your Chats</h3>
+	      <div id="add-chat" data-toggle="modal" data-target="#myModal">+</div>
+	      <span id="chatNo">5 chats</span>
+	    </div>
+	    <ul id="user-chats" class="list-group">
+	    	<li class="list-group-item">no chats for you</li>
+	    </ul>
+	  </div>
+	  
+	</div>
+
+	<div class="col-sm-9">
+	  <div class="panel panel-default messages">
+	    <div class="panel-heading">
+	      <h3 class="panel-title" id="chatName">Chat room</h3>
+	      <ul id="userlist">
+	      </ul>
+	    </div>
+	    <div class="panel-body">
+	      <ul id="messages" class="media-list"></ul>
+	    </div>
+	    <div class="panel-footer">
+	      <form id="messageForm" action="">
+	        <div class="row">
+	          <div class="col-sm-12">
+	            <div class="form-group">
+	              <textarea class="form-control" id="m" placeholder="message" style="overflow:hidden" autofocus></textarea>
+	            </div>
+	            <button id="sendbtn" type="submit" class="btn btn-primary"><img src="/images/sendbtn.png"></button>
+	          </div>
+	          <!-- <div class="col-sm-2">
+	          </div> -->
+	        </div>
+	      </form>
+	    </div>
+	  </div>
+	</div>
+
+	<!-- Modal -->
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+	      </div>
+	      <div class="modal-body">
+	        <form id="newChatForm" action="">
+	    	  <div class="form-group">
+			    <label for="chat-name">chat name</label>
+			    <input class="form-control" id="chat-name" placeholder="name">
+			  </div>
+			  <div class="form-group">
+			    <label for="select-users">users</label>
+			    <select id="select-users" class="form-control selectpicker" title="you can choose 20 users max" multiple data-live-search="true" data-max-options="20" data-size="7" data-selected-text-format="count > 4">
+				  <option value="">1</option>
+				  <option value="">2</option>
+				  <option value="">3</option>
+				  <option value="">4</option>
+				  <option value="">5</option>
+				  <option value="">6</option>
+				  <option value="">7</option>
+				  <option value="">8</option>
+				</select>
+			  </div>
+	    	</form>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        <button id="submit-newchat" type="button" class="btn btn-primary">Save changes</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+</div>

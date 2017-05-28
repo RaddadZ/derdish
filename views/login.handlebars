@@ -1,0 +1,51 @@
+<div class="row">
+	<div class="col-sm-6">
+		<form method="post" action="/users/login">
+			<h2 class="form-signin-heading">Sign in</h2>
+			<hr>
+			<div class="form-group">
+				<label for="exampleInputEmail1">Username</label>
+				<input name="username" type="username" class="form-control" id="exampleInputEmail1" placeholder="Username">
+			</div>
+			<div class="form-group">
+				<label for="exampleInputPassword1">Password</label>
+				<input name="password" type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+			</div>
+			
+		  	<button type="submit" class="btn btn-default">Submit</button>
+		</form>
+	</div>
+	<div class="col-sm-6">
+		<!-- change api to users -->
+		<form method="post" action="/api/register">
+			<h2 class="form-signin-heading">Sign up</h2>
+			<hr>
+			<div class="form-group">
+				<label for="exampleInputEmail1">Username</label>
+				<input name="username" type="username" class="form-control" id="exampleInputEmail1" placeholder="Username">
+			</div>
+			<div class="form-group">
+				<label for="exampleInputPassword1">Password</label>
+				<input name="password" type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+			</div>
+
+			<div class="form-group">
+				<label for="cp2">Color</label>
+				<div id="cp2" class="input-group colorpicker-component">
+			    	<input type="text" name="color" value="#00AABB" class="form-control" />
+				    <span class="input-group-addon"><i></i></span>
+				</div>
+				<script>
+				    $(function() {
+				        $('#cp2').colorpicker({
+				        	format:'hex'
+				        });
+				    });
+				</script>
+				<!-- <input name="password2" type="password" class="form-control" id="exampleInputPassword2" placeholder="Password2"> -->
+			</div>
+			
+		  	<button type="submit" class="btn btn-default">Submit</button>
+		</form>
+	</div>
+</div>

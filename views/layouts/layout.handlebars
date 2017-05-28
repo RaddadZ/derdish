@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Derdish</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-select.css">
+    <link rel="stylesheet" href="/css/bootstrap-colorpicker.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/jquery-3.1.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap-select.min.js"></script>
+    <script src="/js/bootstrap-colorpicker.min.js"></script>
+
+  </head>
+  <body>
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">
+            Derdişşş!
+          </a>
+        </div>
+        {{#if user}}
+        <p class="navbar-text navbar-right">Signed in as {{user.username}}, <a href="/users/logout" style="margin-right:15px" class="navbar-link">logout</a></p>
+        {{else}}
+        <p class="navbar-text navbar-right"><a href="/users/login" class="navbar-link">login</a></p>
+        {{/if}}
+      </div>
+    </nav>
+    <div class="container">
+      {{{body}}}
+    </div>
+  </body>
+</html>

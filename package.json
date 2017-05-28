@@ -1,0 +1,28 @@
+{
+  "name": "derdish",
+  "version": "0.0.2",
+  "description": "real-time chat",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Anan Raddad",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "*",
+    "body-parser": "*",
+    "connect-mongo": "^1.3.2",
+    "cookie-parser": "*",
+    "express": "*",
+    "express-handlebars": "*",
+    "express-messages": "*",
+    "express-session": "*",
+    "mongodb": "*",
+    "mongoose": "*",
+    "morgan": "^1.8.1",
+    "passport": "*",
+    "passport-jwt": "^2.2.1",
+    "passport-local": "*",
+    "socket.io": "*"
+  }
+}
