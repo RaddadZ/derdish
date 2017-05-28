@@ -14,3 +14,5 @@ the project still has alot to be added; some features not perfectly working, som
 - [ ] complete the api code
 - [ ] add the abillity to remove user from chat
 - [ ] provide better UI
+- [ ] show the color of users as avatar
+- [ ] consider using Redis
