@@ -5,6 +5,9 @@ basic unsecure real-time chat app using **NodeJS** with Json API using:
 - MongoDB
 - Passport
 
+### Chat UI
+![Chat](https://raw.github.com/raddadz/derdish001/master/imgs/chat.png)
+
 ### TODO
 the project still has alot to be added; some features not perfectly working, some problems do have temporary solutions and security was not considered.
 - [ ] complete the api code
