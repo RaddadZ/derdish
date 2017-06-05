@@ -23,6 +23,7 @@
     "passport": "*",
     "passport-jwt": "^2.2.1",
     "passport-local": "*",
+    "serve-favicon": "^2.4.3",
     "socket.io": "^1.7.3"
   }
 }
