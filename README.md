@@ -12,7 +12,10 @@ basic unsecure real-time chat app using **NodeJS** with Json API using:
 ### TODO
 the project still has alot to be added; some features not perfectly working, some problems do have temporary solutions and security was not considered.
 - [ ] complete the api code
-- [ ] add the abillity to remove user from chat
-- [ ] provide better UI
-- [ ] show the color of users as avatar
-- [ ] consider using Redis
+- [ ] add the abillity to remove/add user in chat
+- [ ] add the abillity to remove chats
+- [ ] provide admin panel
+- [ ] improve UI/UX (notifications, avatars)
+- [ ] validating inputs
+- [ ] use Redis
+- [ ] visualizing links of images and videos in the chat
