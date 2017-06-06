@@ -10,6 +10,14 @@
 	    var form = document.getElementById("messageForm");
 		var msgsByID= $('#messages');
 
+		var pageVisible = true;
+		if(document.addEventListener) document.addEventListener("visibilitychange", changeVisibility);
+		function changeVisibility (){
+			if (pageVisible)
+				pageVisible = false;
+			else
+				pageVisible = true;
+		}
 
 	    // my functions
 	    function updateUsers(users,onlineUsers){
@@ -134,9 +142,23 @@
         //   updateUsers(data.chatusers,data.onlineusers);
         // });
 
+		
+
         socket.on('chat message',function(msg,sender){
             var date = new Date(msg.date);
 	   	    addMessage(meuser, msg.sender, msg.message,date);
+	   	    if (pageVisible){
+	   	    	Push.create(msg.sender, {
+				    body: msg.message,
+				    icon: '/images/200x200_avatar.png',
+				    timeout: 4000,
+				    onClick: function () {
+				        window.focus();
+				        this.close();
+				    }
+				});
+	   	    }
+	   	    
         });
 
         socket.on('load main chat users',function (loadedChatUsers) {
