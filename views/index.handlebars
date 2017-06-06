@@ -59,6 +59,13 @@
           	var isScrolledToBottom = msgs.scrollHeight - msgs.clientHeight <= msgs.scrollTop + 1;
 			var img = '/images/200x200_avatar.png';
             // var time = date.getHours()+':'+date.getMinutes();
+            var ytLinkIndex = message.indexOf('youtube.com/watch?v=');
+            var frame = "";
+            if (ytLinkIndex !== -1){
+            	frame = '<iframe style="width:100%;height:280px;" src="https://www.youtube.com/embed/'+message.substring(ytLinkIndex+20,ytLinkIndex+31)+'" frameborder="0" allowfullscreen></iframe>';
+            }
+            // https://www.youtube.com/watch?v=wXLa5tprhLc
+		    // <iframe width="560" height="315" src="https://www.youtube.com/embed/wXLa5tprhLc" frameborder="0" allowfullscreen></iframe>
             var time = date.toLocaleTimeString().replace(/:\d+ /, ' ');
             // time = date;
 			var messageHTML;
@@ -67,14 +74,14 @@
 				// sameUser = false;
 				lastSendingUser = sender;
 				if (me == sender) {
-					messageHTML = '<li class="media message-li text-right"><div class="media-body"><p class="ind-msg">'+message+'<small class="msgtime">'+time+'</small></p></div><div class="media-right"><a href="#"><img class="media-object avatar" src="'+img+'" alt="..."></a></div></li>';
+					messageHTML = '<li class="media message-li text-right"><div class="media-body"><p class="ind-msg">'+frame+message+'<small class="msgtime">'+time+'</small></p></div><div class="media-right"><a href="#"><img class="media-object avatar" src="'+img+'" alt="..."></a></div></li>';
 				} else {
-					messageHTML = '<li class="media message-li"><div class="media-left"><a href="#"><img class="media-object avatar" src="'+img+'" alt="..."></a></div><div class="media-body"><p class="ind-msg"><a class="msg-username">'+sender+'</a><br>'+message+'<small class="msgtime">'+time+'</small></p></div></li>';
+					messageHTML = '<li class="media message-li"><div class="media-left"><a href="#"><img class="media-object avatar" src="'+img+'" alt="..."></a></div><div class="media-body"><p class="ind-msg"><a class="msg-username">'+sender+'</a><br>'+frame+message+'<small class="msgtime">'+time+'</small></p></div></li>';
 				}
 				$('#messages').append(messageHTML);
 			}
 			else {
-				messageHTML = '<p class="ind-msg">'+message+'<small class="msgtime">'+time+'</small></p>';
+				messageHTML = '<p class="ind-msg">'+frame+message+'<small class="msgtime">'+time+'</small></p>';
 				$('#messages').find('.message-li:last-child .media-body').append(messageHTML);
 			}
 			if (!dontScroll) {
@@ -272,6 +279,22 @@
 			
 		});
 
+		// $("#m").bind('paste drop', null, function(e) {
+		//     var elem = $(this);
+
+		//     setTimeout(function() {
+		//         // gets the copied text after a specified time (100 milliseconds)
+		//         var text = elem.val(); 
+		//         // https://www.youtube.com/watch?v=wXLa5tprhLc
+		//         // <iframe width="560" height="315" src="https://www.youtube.com/embed/wXLa5tprhLc" frameborder="0" allowfullscreen></iframe>
+		//         var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\?v=)([^#\&\?]*).*/;
+  //           	var match = text.match(regExp);
+		//         // if (match && match[2].length == 11) {
+	 //         //        $('#ytplayerSide').attr('src', 'https://www.youtube.com/embed/' + match[2] + '?autoplay=0');
+	 //         //    }
+		//     }, 100);
+		// });
+
 		// function textAreaAdjust(o) {
 		//   o.style.height = "1px";
 		//   if (o.scrollHeight<80) {
@@ -290,7 +313,12 @@
 	<div class="col-sm-3">
 	  <div class="panel panel-default">
 	    <div class="panel-heading" id="userchats">
-	      <h3 class="panel-title" >Your Chats</h3>
+	      {{#if user}}
+          <h3 class="panel-title" >{{user.username}}</h3>
+           <a href="/users/logout" style="margin-right:15px" class="navbar-link">logout</a> 
+          {{else}}
+          <h3 class="panel-title" >login first</h3>
+          {{/if}}
 	      <div id="add-chat" data-toggle="modal" data-target="#myModal">+</div>
 	      <span id="chatNo">5 chats</span>
 	    </div>
