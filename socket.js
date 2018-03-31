@@ -38,7 +38,7 @@ io.on('connection', function(socket) {
 	    socket.on('chat message', function(msg){
 	    	if (socket.activeChat.id) {
 				pushNewMessageToActiveChat(msg,user.username, function (err, chat) {
-				  if (err) return handleError(err)
+				  if (err) return console.log(err.message)
 				  console.log('server: '+chat.name+': message: '+chat.lastMessage.sender+': ' + chat.lastMessage.message);
 				  socket.broadcast.to(chat.id).emit('chat message', chat.lastMessage, user.username);
 				});

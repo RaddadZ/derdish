@@ -13,7 +13,9 @@ var UserSchema = mongoose.Schema({
 	},
 	color: { type: String},
 	chats: [{ type: Schema.Types.ObjectId, ref: 'Chat' }]
-});
+}, {
+	usePushEach: true
+  });
 
 
 UserSchema.methods.addChat = function(chat, callback) {
@@ -74,8 +76,5 @@ module.exports.addChat = function(id, chat, callback) {
 
 
 module.exports.comparePassword = function(candidatePassword, hash, callback) {
-	bcrypt.compare(candidatePassword, hash, function(err,isMatch){
-		if (err) throw err;
-		callback(null,isMatch);
-	});
+	bcrypt.compare(candidatePassword, hash, callback);
 }

@@ -9,7 +9,9 @@ var MessageSchema = Schema({
 		type: Date, 
 		default: Date.now 
 	}
-});
+}, {
+	usePushEach: true
+  });
 
 var ChatSchema = Schema({
 	name: String,
@@ -17,7 +19,9 @@ var ChatSchema = Schema({
 	users: [{ type: Schema.Types.ObjectId, ref: 'User' }],
 	lastMessage: MessageSchema,
 	messages: [MessageSchema]
-});
+}, {
+	usePushEach: true
+  });
 
 ChatSchema.methods.addUser = function(user, callback) {
   	if (this.users.length<this.maxUserNo) {

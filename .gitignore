@@ -1,4 +1,5 @@
 
 *.zi
 *.pdf
+.vscode
 node_modules
