@@ -113,6 +113,19 @@ router.post('/chat', passport.authenticate('jwt', {session: false}), function(re
   }
 });
 
+router.get('/user/:username', function(req,res){ 
+  var usrename = req.params.username;
+  User.getUserByUsername(usrename, function(err, user){
+    if (err) {res.json({ success: false, message: "user not found" });return;}
+    if (user){
+      res.json({ success: true, message: user });
+    }
+    else {
+      res.json({ success: false, message: "no user found" });
+    }
+  });
+});
+
 router.get('/chat/:chatid', passport.authenticate('jwt', {session: false}), function(req,res){ 
   var chatid = req.params.chatid;
   var me = req.user.username;

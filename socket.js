@@ -137,7 +137,7 @@ io.on('connection', function(socket) {
 
 		socket.on('update user', function(data){
 			console.log(data);
-			User.updateUser(user.id, data.password, data.color, function(err, updatedUser){
+			User.updateUser(user.id, data.password, data.color,data.role, function(err, updatedUser){
 				if(err) console.log(err.message);
 				else console.log("user updated succsessfuly\t", updatedUser);
 			})

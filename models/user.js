@@ -12,6 +12,8 @@ var UserSchema = mongoose.Schema({
 		type: String
 	},
 	color: { type: String},
+	role: {type: String,
+		default: 'user'},
 	chats: [{ type: Schema.Types.ObjectId, ref: 'Chat' }]
 }, {
 	usePushEach: true
@@ -44,11 +46,12 @@ module.exports.createUser = function(newUser, callback) {
 	// });
 }
 
-module.exports.updateUser = function(userid, password, color, callback) {
+module.exports.updateUser = function(userid, password, color,role, callback) {
 	var query = {_id:userid},
 		update = { 
 			password : password,
-	    	color : color
+	    	color : color,
+	    	role : role
 	    },	    
 	    options = { new: true };
 	User.findOneAndUpdate(query, update, options, callback);
@@ -64,8 +67,10 @@ module.exports.removeChat = function (userid, chatid){
 }
 
 module.exports.getUserByUsername = function(username, callback) {
-	var query = {username: username};
-	User.findOne(query,callback);
+	var query = {
+		$where: "this.username === '" + username + "'"
+	};
+	User.find(query,callback);
 }
 
 module.exports.getUserById = function(id, callback) {

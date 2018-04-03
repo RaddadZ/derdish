@@ -24,7 +24,7 @@ the project still has alot to be added; some features not perfectly working, som
 - [*] update user 
 - [*] seperate message from chat
 - [*] add search for messages in chat using ajax
-- [ ] add moderator role
+- [*] add moderator role
 - [*] add ability to delete messages (database could have a problem)
 - [*] check for token 
 

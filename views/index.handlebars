@@ -6,6 +6,7 @@
 	  var alertAdded = false;
     var lastSendingUser;
     var meuser = "{{user.username}}";
+		var userrole = "{{user.role}}";
 	  var msgs = document.getElementById("messages");
 	  var form = document.getElementById("messageForm");
 		var msgsByID= $('#messages');
@@ -232,6 +233,47 @@
 				};
 		})
 
+		$(document).on({
+				mouseenter: function () {
+					if (userrole != "user" )
+    				$( this ).append( $( "<span class=\"ind-msg-remove\">×</span>" ) );
+				},
+				mouseleave: function () {
+					if (userrole != "user" )
+						$( this ).find( "span:last" ).remove();
+				}
+		}, "p.ind-msg");
+		
+		$(document).on('click', '.ind-msg-remove', function(){
+			var msgId = $(this).parent().attr('id');
+			if(msgId){
+				socket.emit('message remove', msgId);
+			}
+		});
+
+		$(document).on('click', '#user-chats .chatitem', function(){
+			socket.emit('chat switch', $(this).attr('id'));
+		});
+
+		$(document).on('click', '#messages .loadmorebtn', function(){
+			var c = $(this).attr("value");
+			socket.emit('load more messages', c++);
+			$(this).attr("value",c);
+		});
+
+		$(document).on('click', '#userlist li', function(){
+			var user = {
+				id: $(this).attr('id'),
+				username: $(this).text()
+			}
+			if (user.username != 'you') {
+				// console.log(user);
+				socket.emit('new dual chat', user);
+			}else {
+				showKKBar('find friends, don\'t chat with yourself', 3000);
+			}
+		});
+
 
 		$('#m').on('keypress', function(e){
 			if (e.keyCode==13) {
@@ -299,62 +341,42 @@
 			return false;
 		})
 
+		$('#editUser').on('click',function(){
+			var username = $('#editUser').text().trim();
+			console.log(username);
+			var url = `api/user/${username}`;
+			console.log(url);
+			$.ajax({
+				url: url,
+				method:"GET",
+				success: function(result) {
+					var resultMessages = result.message;
+					if(resultMessages && resultMessages.length > 0){
+						$('#updatedUserPassword').val('');
+						$('#updatedUserColor').val(resultMessages[0].color);
+						$('#updatedUserRole').val(resultMessages[0].role);
+					}
+				}
+			})
+		});
 		$('#editUserForm').submit(function(){
 			var password = $('#updatedUserPassword').val();
 			var color = $('#updatedUserColor').val();
+			var role = $('#updatedUserRole').val();
 
 			var data = {
 				password : password,
-				color : color
+				color : color,
+				role : role
 			}
 			$('#updatedUserPassword').val('');
 			$('#updatedUserColor').val('');
+			$('#updatedUserRole').val('');
 			socket.emit('update user', data);
 			$('#editUserModal').modal('hide');
 			
 			return false;
 		})
-
-		$(document).on({
-				mouseenter: function () {
-    			$( this ).append( $( "<span class=\"ind-msg-remove\">×</span>" ) );
-				},
-				mouseleave: function () {
-					$( this ).find( "span:last" ).remove();
-				}
-		}, "p.ind-msg");
-		
-		$(document).on('click', '.ind-msg-remove', function(){
-			var msgId = $(this).parent().attr('id');
-			if(msgId){
-				socket.emit('message remove', msgId);
-			}
-		});
-
-		$(document).on('click', '#user-chats .chatitem', function(){
-			socket.emit('chat switch', $(this).attr('id'));
-		});
-
-		$(document).on('click', '#messages .loadmorebtn', function(){
-			var c = $(this).attr("value");
-			socket.emit('load more messages', c++);
-			$(this).attr("value",c);
-		});
-
-		$(document).on('click', '#userlist li', function(){
-			var user = {
-				id: $(this).attr('id'),
-				username: $(this).text()
-			}
-			if (user.username != 'you') {
-				// console.log(user);
-				socket.emit('new dual chat', user);
-			}else {
-				showKKBar('find friends, don\'t chat with yourself', 3000);
-			}
-		});
-
-
 
 		$('#searchButton').on('click',function(){
 			var q = $("#searchQueryBox").val();
@@ -509,7 +531,10 @@
 							<label for="updatedUserPassword">Password</label>
 							<input name="password" type="password" class="form-control" id="updatedUserPassword" placeholder="Password">
 						</div>
-
+						<div class="form-group">
+							<label for="updatedUserRole">Role</label>
+							<input name="role" type="text" class="form-control" id="updatedUserRole" placeholder="Role" disabled>
+						</div>
 						<div class="form-group">
 							<label for="cp2">Color</label>
 							<div id="cp2" class="input-group colorpicker-component">
