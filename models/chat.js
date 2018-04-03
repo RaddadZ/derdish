@@ -2,23 +2,23 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 // var UserSchema = mongoose.model('User').schema;
 
-var MessageSchema = Schema({
-	sender: String,
-	message: String,
-	date: { 
-		type: Date, 
-		default: Date.now 
-	}
-}, {
-	usePushEach: true
-  });
+// var MessageSchema = Schema({
+// 	sender: String,
+// 	message: String,
+// 	date: { 
+// 		type: Date, 
+// 		default: Date.now 
+// 	}
+// }, {
+// 	usePushEach: true
+//   });
 
 var ChatSchema = Schema({
 	name: String,
 	maxUserNo: 	Number,
 	users: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-	lastMessage: MessageSchema,
-	messages: [MessageSchema]
+	lastMessage: { type: Schema.Types.ObjectId, ref: 'Message' },
+	messages: [{ type: Schema.Types.ObjectId, ref: 'Message' }]
 }, {
 	usePushEach: true
   });
@@ -35,12 +35,25 @@ ChatSchema.methods.addUser = function(user, callback) {
   	}
 };
 
+ChatSchema.methods.addMessage = function(message, callback) {
+	// add some stuff to the users name
+		var query = {_id:this.id},
+		  update = { 
+			  lastMessage: message,
+			  $addToSet: {messages: message} 
+		  },
+		  options = { new: true };
+		Chat.findOneAndUpdate(query, update, options)
+			.populate('messages').populate('lastMessage').exec(callback);
+		return;
+  };
+  
 ChatSchema.methods.isFull = function() {
   	return this.users.length==this.maxUserNo;
 };
 
 
-var Message = module.exports = mongoose.model('Message',MessageSchema);
+// var Message = module.exports = mongoose.model('Message',MessageSchema);
 var Chat = module.exports = mongoose.model('Chat',ChatSchema);
 
 module.exports.getChatById = function(id, callback) {
@@ -49,18 +62,18 @@ module.exports.getChatById = function(id, callback) {
 
 module.exports.getAndPopChatById = function(id, messageLimit,callback) {
 	// console.log('chat is to be populated and sent back');
-	Chat.findOne({_id: id}).populate('users','username _id').slice('messages',-messageLimit).exec(callback);
+	Chat.findOne({_id: id}).populate('users','username _id').populate('lastMessage').populate('messages').slice('messages',-messageLimit).exec(callback);
 }
 
 module.exports.getLimitedMessages = function(id, messageLimit, start, callback) {
 	console.log('chat messages to be sent');
 	// Chat.findOne({_id: id}).slice('messages', [-start, messageLimit]).exec(callback);
-	Chat.findOne({_id: id}).select('messages').exec(callback);
+	Chat.findOne({_id: id}).populate('lastMessage').populate('messages').select('messages').exec(callback);
 }
 
 module.exports.getAllMessages = function(id, callback) {
 	console.log('chat messages to be sent');
-	Chat.findOne({_id: id}).select('messages').exec(callback);
+	Chat.findOne({_id: id}).populate('lastMessage').populate('messages').select('messages').exec(callback);
 }
 
 module.exports.getChatUsers = function(id, callback) {

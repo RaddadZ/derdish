@@ -7,6 +7,7 @@ var ExtractJwt = require('passport-jwt').ExtractJwt;
 
 var User = require('../models/user');
 var Chat = require('../models/chat');
+var Message = require('../models/message');
 
 
 var io = require('../socket').io;
@@ -173,7 +174,29 @@ router.get('/chat/:chatid/messages', passport.authenticate('jwt', {session: fals
   });
 });
 
-
+router.get('/chat/:chatid/search',  function(req,res){ 
+  var query = req.query.query;
+  var chatid = req.params.chatid;
+  //var me = req.user.username;
+  // TODO: auth first
+  //console.log(query,chatid,me);
+  Message.getSearchResultMessages(chatid, query, function(err, messages){
+    if (err || !messages) {
+      res.json({ success: false, message: "messages not found"+ err + messages });
+      return;
+    }
+    if (messages){
+      res.json({ success: true, message: messages });
+      // Chat.isUsernameAuth(chatid, me, function(err, isAuth){
+      //   if (isAuth) {
+      //     res.json({ success: true, message: messages });
+      //   }else {
+      //     res.json({ success: false, message: "you are not authenticated for this chat" });
+      //   }
+      // });
+    }
+  });
+});
 
 router.put('/chat/:chatid/messages/add', passport.authenticate('jwt', {session: false}), function(req,res){ 
   if(!req.body.msg ) {
@@ -246,6 +269,7 @@ router.put('/chat/:chatid/user/add', passport.authenticate('jwt', {session: fals
   }
 });
 
+
 router.post('/register', function(req, res) {  
   if(!req.body.username || !req.body.password) {
     res.json({ success: false, message: req.body.username });
@@ -312,28 +336,38 @@ router.post('/register', function(req, res) {
 
 router.post('/authenticate', function(req, res) {
   console.log('entered authenticate %s',req.body.username);
-  User.getUserByUsername(req.body.username, function(err, user){
-    if (err) throw err;
-    if (!user) {
-      res.send({ success: false, message: 'Authentication failed. User not found.'+user });
+  User.authUsernamePassword(req.body.username, req.body.password, function(err, user){
+    console.log("*** username password ***\n"+user);
+    if(user){
+      var token = jwt.sign({id: user._id, username: user.username }, 'jwtokenSecret');
+      res.json({ success: true, token: 'JWT ' + token});
     }
-    else{
-      // if no prob it will continue
-      User.comparePassword(req.body.password, user.password,function(err,isMatch){
-        if (err) throw err;
-        if (isMatch) {
-          // Create token if the password matched and no error was thrown
+    else {
+      res.send({ success: false, message: 'Authentication failed.' });
+    }
+  });
 
-          var token = jwt.sign({id: user._id, username: user.username }, 'jwtokenSecret', {
-            expiresIn: 10800 // in seconds
-          });
-          res.json({ success: true, token: 'JWT ' + token});
-        } else {
-          res.send({ success: false, message: 'Authentication failed. Passwords did not match.' });
-        }
-      });
-    }
-  })
+  // User.getUserByUsername(req.body.username, function(err, user){
+  //   if (err) throw err;
+  //   if (!user) {
+  //     res.send({ success: false, message: 'Authentication failed. User not found.'+user });
+  //   }
+  //   else{
+  //     // if no prob it will continue
+  //     User.comparePassword(req.body.password, user.password,function(err,isMatch){
+  //       if (err) throw err;
+  //       if (isMatch) {
+  //         // Create token if the password matched and no error was thrown
+  //         var token = jwt.sign({id: user._id, username: user.username }, 'jwtokenSecret', {
+  //           expiresIn: 10800 // in seconds
+  //         });
+  //         res.json({ success: true, token: 'JWT ' + token});
+  //       } else {
+  //         res.send({ success: false, message: 'Authentication failed. Passwords did not match.' });
+  //       }
+  //     });
+  //   }
+  // })
 });
 
 
@@ -365,14 +399,19 @@ function createChat(name, max, users, callback){
 function pushNewMessageToActiveChat(chatid, senderUsername, msg, callback){
     Chat.getChatById(chatid, function(err, chat){
       if (err) {return};
-      var newMessage = {
-        sender: senderUsername,
-        message: msg
-      };
-      var newMsgObj = chat.messages.create(newMessage);
-      chat.messages.push(newMsgObj);
-      chat.lastMessage = newMsgObj;
-      chat.save(callback);
+      var newMessage = new Message();
+			newMessage.chat = socket.activeChat.id;
+			newMessage.sender= username;
+			newMessage.message= ms;
+      newMessage.save(function(err,savedmsg){
+				if (err) {return};
+				chat.addMessage(savedmsg, callback);
+			});
+      
+      // var newMsgObj = chat.messages.create(newMessage);
+      // chat.messages.push(newMsgObj);
+      // chat.lastMessage = newMsgObj;
+      // chat.save(callback);
     });
 }
 

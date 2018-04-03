@@ -50,6 +50,13 @@ ul {
 	padding:0;
 }
 
+.ind-msg-remove {
+	padding-left:5px;
+	font-weight: bolder;
+	color: crimson;
+	cursor: pointer;
+}
+
 .ind-msg {
 	font-size: 0.9em;
 	background-color: #f8f8f6;
@@ -98,6 +105,33 @@ ul {
 
 .panel-title {
 	display: inline-block;
+}
+.panel-search {
+    display:  inline;
+	float:  right;
+	font-size: 12px;
+}
+.panel-search input:focus {
+    outline-width: 0;
+}
+.panel-search input {
+	float: left;
+	top: -10px;
+	padding-left: 2px;
+	width: 150px;
+	height: 20px;
+	border: solid 1px #dddddd;
+	border-radius: 5px 0px 0px 5px;
+}
+
+.panel-search button {
+	float: left;
+	top: -10px;
+	padding: 0;
+	border: 0;
+	width: 50px;
+	height: 20px;
+	border-radius: 0px 5px 5px 0px;
 }
 
 #chatcontainer {

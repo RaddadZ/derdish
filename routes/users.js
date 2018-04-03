@@ -75,25 +75,35 @@ router.post('/register',function(req,res){
 
 passport.use(new LocalStrategy(
   function(username, password, done) {
+    console.log("passport use is called\n", username + password);
   	// we can call User.findOne() directly here
-  	// see http://passportjs.org/docs/username-password
-    User.getUserByUsername(username, function(err, user){
-    	if (err) throw err;
-    	if (!user) {
-    		console.log('no user found');
-    		return done(null,false,{message:'Unknown User'});
-    	}
-    	// if no prob it will continue
-    	User.comparePassword(password, user.password,function(err,isMatch){
-    		if (err) throw err;
-    		if (isMatch) {
-    			return done(null,user);
-    		} else {
-          console.log('Invalid password');
-    			return done(null,false,{message:'Invalid pass'});
-    		}
-    	});
-    })
+    // see http://passportjs.org/docs/username-password
+    User.authUsernamePassword(username, password, function(err, user){
+      console.log("*** username password ***\n"+user);
+      if(user){
+        return done(null,user);
+      }
+      else {
+        return done(null,false,{message:'couldn\'t auth'});
+      }
+    });
+    // User.getUserByUsername(username, function(err, user){
+    // 	if (err) throw err;
+    // 	if (!user) {
+    // 		console.log('no user found');
+    // 		return done(null,false,{message:'Unknown User'});
+    // 	}
+    // 	// if no prob it will continue
+    // 	User.comparePassword(password, user.password,function(err,isMatch){
+    // 		if (err) throw err;
+    // 		if (isMatch) {
+    // 			return done(null,user);
+    // 		} else {
+    //       console.log('Invalid password');
+    // 			return done(null,false,{message:'Invalid pass'});
+    // 		}
+    // 	});
+    // })
   }
 ));
 

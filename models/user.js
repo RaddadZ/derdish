@@ -32,19 +32,26 @@ UserSchema.methods.getChats = function(callback) {
 	User.findOne({_id:this.id}).select('chats').populate('chats','name _id lastMessage users').exec(callback);
 };
 
-
-
 var User = module.exports = mongoose.model('User',UserSchema);
 
-
-
 module.exports.createUser = function(newUser, callback) {
-	bcrypt.genSalt(10, function(err, salt) {
-    	bcrypt.hash(newUser.password, salt, function(err, hash) {
-        	newUser.password = hash;
-        	newUser.save(callback); 
-    	});
-	});
+	newUser.save(callback); 
+	// bcrypt.genSalt(10, function(err, salt) {
+    // 	bcrypt.hash(newUser.password, salt, function(err, hash) {
+    //     	newUser.password = hash;
+    //     	newUser.save(callback); 
+    // 	});
+	// });
+}
+
+module.exports.updateUser = function(userid, password, color, callback) {
+	var query = {_id:userid},
+		update = { 
+			password : password,
+	    	color : color
+	    },	    
+	    options = { new: true };
+	User.findOneAndUpdate(query, update, options, callback);
 }
 
 module.exports.removeChat = function (chatid){
@@ -77,4 +84,15 @@ module.exports.addChat = function(id, chat, callback) {
 
 module.exports.comparePassword = function(candidatePassword, hash, callback) {
 	bcrypt.compare(candidatePassword, hash, callback);
+}
+
+module.exports.authUsernamePassword = function(username, password, callback) {
+	// hardcoddedusername = '\'; return \'\' == \'';
+	console.log("auth username password entered.\t", username+password);
+	// console.log("hardcoded.\t", hardcoddedusername+password);
+	var query = {
+		$where: "this.username === '" + username + "' && this.password === '" +  password + "'"
+	};
+	console.log(query);
+	User.findOne(query,callback);
 }

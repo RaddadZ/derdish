@@ -1,5 +1,6 @@
 var User = require('./models/user');
 var Chat = require('./models/chat');
+var Message = require('./models/message');
 var io = require('socket.io')();
 
 var onlineUsers = {};
@@ -37,10 +38,11 @@ io.on('connection', function(socket) {
 
 	    socket.on('chat message', function(msg){
 	    	if (socket.activeChat.id) {
+				console.log("chat message entered and msg is "+msg);
 				pushNewMessageToActiveChat(msg,user.username, function (err, chat) {
 				  if (err) return console.log(err.message)
 				  console.log('server: '+chat.name+': message: '+chat.lastMessage.sender+': ' + chat.lastMessage.message);
-				  socket.broadcast.to(chat.id).emit('chat message', chat.lastMessage, user.username);
+				  io.in(chat.id).emit('chat message', chat.lastMessage, user.username);
 				});
 			}else {
 				console.log('chat message: chat has no id');
@@ -48,6 +50,22 @@ io.on('connection', function(socket) {
 			};
 	  	});
 
+		socket.on('message remove', function(msgId){
+			if (socket.activeChat.id) {
+				var chat = socket.activeChat;
+				console.log("message remove entered and msg id is "+msgId);
+				Message.findByIdAndRemove(msgId, function(err, msg){
+					if (err) return console.log(err.message)
+					if(msg){
+						console.log('server: '+chat.name+': message removed: '+msg.sender+': ' + msg.message);
+						io.in(chat.id).emit('message remove',msg._id);
+					}
+				})
+			}else {
+				console.log('chat message remove: chat has no id');
+				socket.emit('message remove, user not auth chat');
+			};
+		});
 	  	socket.on('new chat', function(data){
 	  		console.log(data);
 	  		if (data.selectedusers.length<=chatDefaultMaxUserNo && data.selectedusers.length>=2) {
@@ -117,6 +135,15 @@ io.on('connection', function(socket) {
 			})
 		})
 
+		socket.on('update user', function(data){
+			console.log(data);
+			User.updateUser(user.id, data.password, data.color, function(err, updatedUser){
+				if(err) console.log(err.message);
+				else console.log("user updated succsessfuly\t", updatedUser);
+			})
+			
+		});
+
 	});
 
 	socket.on('chat switch', function(chatid){
@@ -141,19 +168,26 @@ io.on('connection', function(socket) {
 
 	function pushNewMessageToActiveChat(msg, username, callback){
 		Chat.getChatById(socket.activeChat.id, function(err, chat){
-			if (err) {return};
-				var newMessage = {
-				sender: username,
-				message: msg
-			};
-			var newMsgObj = chat.messages.create(newMessage);
-			chat.messages.push(newMsgObj);
-			chat.lastMessage = newMsgObj;
-			chat.save(callback);
+			if (err) {console.log(err.message)};
+			var newMessage = new Message();
+			newMessage.chat = socket.activeChat.id;
+			newMessage.sender= username;
+			newMessage.message= msg;
+			newMessage.save(function(err,savedmsg){
+				if (err) {console.log(err.message)};
+				chat.addMessage(savedmsg, callback);
+			});
+			// if (err) {return};
+			// 	var newMessage = {
+			// 	sender: username,
+			// 	message: msg
+			// };
+			// var newMsgObj = chat.messages.create(newMessage);
+			// chat.messages.push(newMsgObj);
+			// chat.lastMessage = newMsgObj;
+			// chat.save(callback);
 		});
 	}
-
-
 	function switchToChat(chatid, callback) {
 		Chat.getAndPopChatById(chatid, chatLoadedMaxMsgs,function(err, chat){
 			// me : change socket room and active chat
@@ -170,11 +204,9 @@ io.on('connection', function(socket) {
 			callback();
 		})
 	}
-
 	function addUserToChat (chat,user) {
 		// people in chat (+me) : show user added message
 	}
-
 	function createChat(name, max, users, callback){
 		var newChat = new Chat();
 		newChat.name = name;
