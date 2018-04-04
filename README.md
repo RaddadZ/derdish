@@ -21,11 +21,11 @@ the project still has alot to be added; some features not perfectly working, som
 - [ ] validating inputs
 - [ ] use Redis
 - [ ] visualizing links of images and videos in the chat
-- [*] update user 
-- [*] seperate message from chat
-- [*] add search for messages in chat using ajax
-- [*] add moderator role
-- [*] add ability to delete messages (database could have a problem)
-- [*] check for token 
+- [x] update user 
+- [x] seperate message from chat
+- [x] add search for messages in chat using ajax
+- [x] add moderator role
+- [x] add ability to delete messages (database could have a problem)
+- [x] check for token 
 
 
