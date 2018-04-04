@@ -342,10 +342,11 @@
 		})
 
 		$('#editUser').on('click',function(){
+			if(userrole != "admin"){
+				$('#updatedUserRole').prop('disabled', true);
+			}
 			var username = $('#editUser').text().trim();
-			console.log(username);
 			var url = `api/user/${username}`;
-			console.log(url);
 			$.ajax({
 				url: url,
 				method:"GET",
@@ -533,7 +534,7 @@
 						</div>
 						<div class="form-group">
 							<label for="updatedUserRole">Role</label>
-							<input name="role" type="text" class="form-control" id="updatedUserRole" placeholder="Role" disabled>
+							<input name="role" type="text" class="form-control" id="updatedUserRole" placeholder="Role">
 						</div>
 						<div class="form-group">
 							<label for="cp2">Color</label>

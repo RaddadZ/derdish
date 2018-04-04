@@ -352,7 +352,9 @@ router.post('/authenticate', function(req, res) {
   User.authUsernamePassword(req.body.username, req.body.password, function(err, user){
     console.log("*** username password ***\n"+user);
     if(user){
-      var token = jwt.sign({id: user._id, username: user.username }, 'jwtokenSecret');
+      var token = jwt.sign({id: user._id, username: user.username }, 'jwtokenSecret', {
+                  expiresIn: 94670777 // in seconds
+      });
       res.json({ success: true, token: 'JWT ' + token});
     }
     else {
