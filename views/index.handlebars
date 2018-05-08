@@ -1,38 +1,38 @@
 <script>
-  $(function () {
-    var socket = io();
+	$(function () {
+		var socket = io();
 
-	  // variables
-	  var alertAdded = false;
-    var lastSendingUser;
-    var meuser = "{{user.username}}";
+		// variables
+		var alertAdded = false;
+		var lastSendingUser;
+		var meuser = "{{user.username}}";
 		var userrole = "{{user.role}}";
-	  var msgs = document.getElementById("messages");
-	  var form = document.getElementById("messageForm");
-		var msgsByID= $('#messages');
+		var msgs = document.getElementById("messages");
+		var form = document.getElementById("messageForm");
+		var msgsByID = $('#messages');
 
 		var pageVisible = true;
-		if(document.addEventListener) document.addEventListener("visibilitychange", changeVisibility);
+		if (document.addEventListener) document.addEventListener("visibilitychange", changeVisibility);
 
 		// my functions
-		function changeVisibility (){
+		function changeVisibility() {
 			if (pageVisible)
 				pageVisible = false;
 			else
 				pageVisible = true;
 		}
 
-		function updateUsers(users,onlineUsers){
+		function updateUsers(users, onlineUsers) {
 			var usersList = $('#userlist');
 			usersList.empty();
 			// <li>ahmad<span class="online-ind hidden"></span></li>
-			$.each(users, function(i, item) {
+			$.each(users, function (i, item) {
 				var username = item.username;
 				if (username == meuser) {
 					username = 'you';
 				};
 				var li = $('<li/>')
-					.attr("id",item._id)
+					.attr("id", item._id)
 					.text(username)
 					.append('<span class="online-ind hidden"></span>')
 					.append('<span class="typing-ind hidden"></span>')
@@ -45,18 +45,18 @@
 			});
 		}
 
-		function updateChats(chats){
+		function updateChats(chats) {
 			var chatsList = $('#user-chats');
 			chatsList.empty();
-			$('#chatNo').text(chats.length+' chats');
-			$.each(chats, function(i, item) {
+			$('#chatNo').text(chats.length + ' chats');
+			$.each(chats, function (i, item) {
 				if (item.name.match("^\'\"*")) {
 					item.name = item.name.replace("\'\"*", '');
 					item.name = item.name.replace(meuser, '');
 				};
 				var li = $('<li/>')
-					.attr("id",item._id)
-					.attr("class","list-group-item chatitem")
+					.attr("id", item._id)
+					.attr("class", "list-group-item chatitem")
 					.text(item.name)
 				// if (item.lastMessage) {
 				// 	li.append('<br><small>'+item.lastMessage.sender+':'+item.lastMessage.message.substring(0,10)+'</small>')
@@ -65,82 +65,89 @@
 			});
 		}
 
-		function removeMessage(msgId){
+		function removeMessage(msgId) {
 			var th = $(`#${msgId}`);
 			var usernameFromA = th.find('a.msg-username').html();
-			if(usernameFromA){
+			if (usernameFromA) {
 				var pa = th.next();
-				if(pa.html()){
+				if (pa.html()) {
 					pa.prepend(`<a class='msg-username'>${usernameFromA}<a/></br>`)
 				}
 			}
 			var hasSiblings = th.siblings().html();
-			if(!hasSiblings) {
+			if (!hasSiblings) {
 				th.parents("li.message-li").remove();
-			}
-			else {
+			} else {
 				th.remove();
 			}
 		}
-		function addMessage(me,mid, sender, message, date, dontScroll){
+
+		function addMessage(me, mid, sender, message, date, dontScroll) {
 			var isScrolledToBottom = msgs.scrollHeight - msgs.clientHeight <= msgs.scrollTop + 1;
 			var img = '/images/200x200_avatar.png';
 			// var time = date.getHours()+':'+date.getMinutes();
 			var ytLinkIndex = message.indexOf('youtube.com/watch?v=');
 			var frame = "";
-			if (ytLinkIndex !== -1){
-				frame = '<iframe style="width:100%;height:280px;" src="https://www.youtube.com/embed/'+message.substring(ytLinkIndex+20,ytLinkIndex+31)+'" frameborder="0" allowfullscreen></iframe>';
+			if (ytLinkIndex !== -1) {
+				frame = '<iframe style="width:100%;height:280px;" src="https://www.youtube.com/embed/' + message.substring(
+					ytLinkIndex + 20, ytLinkIndex + 31) + '" frameborder="0" allowfullscreen></iframe>';
 			}
 			// https://www.youtube.com/watch?v=wXLa5tprhLc
 			// <iframe width="560" height="315" src="https://www.youtube.com/embed/wXLa5tprhLc" frameborder="0" allowfullscreen></iframe>
 			var time = date.toLocaleTimeString().replace(/:\d+ /, ' ');
 			// time = date;
 			var messageHTML;
-			if (lastSendingUser != sender || alertAdded){
+			if (lastSendingUser != sender || alertAdded) {
 				alertAdded = false;
 				// sameUser = false;
 				lastSendingUser = sender;
 				if (me == sender) {
-					messageHTML = '<li class="media message-li text-right"><div class="media-body"><p id="'+mid+'" class="ind-msg">'+frame+message+'<small class="msgtime">'+time+'</small></p></div><div class="media-right"><a href="#"><img class="media-object avatar" src="'+img+'" alt="..."></a></div></li>';
+					messageHTML = '<li class="media message-li text-right"><div class="media-body"><p id="' + mid +
+						'" class="ind-msg">' + frame + message + '<small class="msgtime">' + time +
+						'</small></p></div><div class="media-right"><a href="#"><img class="media-object avatar" src="' + img +
+						'" alt="..."></a></div></li>';
 				} else {
-					messageHTML = '<li class="media message-li"><div class="media-left"><a href="#"><img class="media-object avatar" src="'+img+'" alt="..."></a></div><div class="media-body"><p id="'+mid+'" class="ind-msg"><a class="msg-username">'+sender+'</a><br>'+frame+message+'<small class="msgtime">'+time+'</small></p></div></li>';
+					messageHTML =
+						'<li class="media message-li"><div class="media-left"><a href="#"><img class="media-object avatar" src="' + img +
+						'" alt="..."></a></div><div class="media-body"><p id="' + mid + '" class="ind-msg"><a class="msg-username">' +
+						sender + '</a><br>' + frame + message + '<small class="msgtime">' + time + '</small></p></div></li>';
 				}
 				$('#messages').append(messageHTML);
-			}
-			else {
-				messageHTML = '<p id="'+mid+'" class="ind-msg">'+frame+message+'<small class="msgtime">'+time+'</small></p>';
+			} else {
+				messageHTML = '<p id="' + mid + '" class="ind-msg">' + frame + message + '<small class="msgtime">' + time +
+					'</small></p>';
 				$('#messages').find('.message-li:last-child .media-body').append(messageHTML);
 			}
 			if (!dontScroll) {
-				if(isScrolledToBottom) msgs.scrollTop = msgs.scrollHeight - msgs.clientHeight;
+				if (isScrolledToBottom) msgs.scrollTop = msgs.scrollHeight - msgs.clientHeight;
 			}
 		}
 
-		function showKKBar(text, time){
+		function showKKBar(text, time) {
 			var kitkat = $('#kitkat');
 			var li = $('<li/>')
-					.attr("class","kkbar")
-					.text(text)
-					.prependTo(kitkat);
+				.attr("class", "kkbar")
+				.text(text)
+				.prependTo(kitkat);
 			li.fadeIn(500);
 			setTimeout(function () {
-				li.fadeOut(500, function(){
+				li.fadeOut(500, function () {
 					li.remove();
 				});
 			}, time);
 		}
 
-    // socket events
-		socket.on('user action',function(message){
+		// socket events
+		socket.on('user action', function (message) {
 			showKKBar(message, 2000);
 			socket.emit('update activechat users')
 		})
 
-		socket.on('update activechat users',function(chatusers, onlineusers){
-			updateUsers(chatusers,onlineusers);
+		socket.on('update activechat users', function (chatusers, onlineusers) {
+			updateUsers(chatusers, onlineusers);
 		});
 
-		socket.on('user not auth chat',function(){
+		socket.on('user not auth chat', function () {
 			$('#chatcontainer').html("no chats for you");
 		});
 
@@ -161,34 +168,34 @@
 		//   updateUsers(data.chatusers,data.onlineusers);
 		// });
 
-		socket.on('chat message',function(msg,sender){
+		socket.on('chat message', function (msg, sender) {
 			var date = new Date(msg.date);
-			addMessage(meuser,msg._id, msg.sender, msg.message,date);
-			if (pageVisible){
+			addMessage(meuser, msg._id, msg.sender, msg.message, date);
+			if (pageVisible) {
 				Push.create(msg.sender, {
 					body: msg.message,
 					icon: '/images/200x200_avatar.png',
 					timeout: 4000,
 					onClick: function () {
-							window.focus();
-							this.close();
+						window.focus();
+						this.close();
 					}
 				});
 			}
 		});
 
-		socket.on('message remove',function(msgId){
+		socket.on('message remove', function (msgId) {
 			removeMessage(msgId);
 		});
 
-		socket.on('load main chat users',function (loadedChatUsers) {
+		socket.on('load main chat users', function (loadedChatUsers) {
 			var usersToSelect = $('#select-users');
 			console.log(usersToSelect);
 			usersToSelect.empty();
-			$.each(loadedChatUsers, function(i, item) {
-				if(item.username != meuser){
+			$.each(loadedChatUsers, function (i, item) {
+				if (item.username != meuser) {
 					var option = $('<option/>')
-						.attr("value",item._id)
+						.attr("value", item._id)
 						.text(item.username)
 						.appendTo(usersToSelect);
 				}
@@ -204,64 +211,66 @@
 			updateChats(chatlist);
 		})
 
-		socket.on('chat switch',function(data){
+		socket.on('chat switch', function (data) {
 			if (data.chat.name.match("^\'\"*")) {
 				data.chat.name = data.chat.name.replace("\'\"*", '');
 				data.chat.name = data.chat.name.replace(meuser, '');
 			};
 			$('#chatName').text(data.chat.name);
 			$('#chatId').text(data.chat._id);
-			updateUsers(data.chat.users,data.onlineusers);
+			updateUsers(data.chat.users, data.onlineusers);
 			msgsByID.empty();
 			alertAdded = true;
-			if (data.chat.messages.length>=15) {
-				$('#messages').append($('<li class="alertbox text-center loadmorebtn" value=1>').html('<small>load more</small>'));
-			}else {
+			if (data.chat.messages.length >= 15) {
+				$('#messages').append($('<li class="alertbox text-center loadmorebtn" value=1>').html(
+					'<small>load more</small>'));
+			} else {
 				$('#messages').append($('<li class="alertbox text-center">').html('<small>Head of Chat</small>'));
 			}
 			for (var i = 0; i < data.chat.messages.length; i++) {
-				addMessage(meuser,data.chat.messages[i]._id, data.chat.messages[i].sender, data.chat.messages[i].message, new Date(data.chat.messages[i].date))
+				addMessage(meuser, data.chat.messages[i]._id, data.chat.messages[i].sender, data.chat.messages[i].message, new Date(
+					data.chat.messages[i].date))
 			};
 		});
-	
-		socket.on('load more messages', function(messages){
+
+		socket.on('load more messages', function (messages) {
 			msgsByID.empty();
-				alertAdded = true;
-				$('#messages').append($('<li class="alertbox text-center">').html('<small>Head of Chat</small>'));
-				for (var i = 0; i < messages.length; i++) {
-					addMessage(meuser,messages[i]._id, messages[i].sender, messages[i].message, new Date(messages[i].date), true)
-				};
+			alertAdded = true;
+			$('#messages').append($('<li class="alertbox text-center">').html('<small>Head of Chat</small>'));
+			for (var i = 0; i < messages.length; i++) {
+				addMessage(meuser, messages[i]._id, messages[i].sender, messages[i].message, new Date(messages[i].date), true)
+			};
 		})
 
 		$(document).on({
-				mouseenter: function () {
-					if (userrole != "user" )
-    				$( this ).append( $( "<span class=\"ind-msg-remove\">×</span>" ) );
-				},
-				mouseleave: function () {
-					if (userrole != "user" )
-						$( this ).find( "span:last" ).remove();
-				}
+			mouseenter: function () {
+				if (userrole != "user")
+					$(this).append($("<span class=\"ind-msg-remove\">×</span>"));
+			},
+			mouseleave: function () {
+				if (userrole != "user")
+					$(this).find("span:last").remove();
+			}
 		}, "p.ind-msg");
-		
-		$(document).on('click', '.ind-msg-remove', function(){
+
+		$(document).on('click', '.ind-msg-remove', function () {
 			var msgId = $(this).parent().attr('id');
-			if(msgId){
+			if (msgId) {
 				socket.emit('message remove', msgId);
 			}
 		});
 
-		$(document).on('click', '#user-chats .chatitem', function(){
+		$(document).on('click', '#user-chats .chatitem', function () {
 			socket.emit('chat switch', $(this).attr('id'));
 		});
 
-		$(document).on('click', '#messages .loadmorebtn', function(){
+		$(document).on('click', '#messages .loadmorebtn', function () {
 			var c = $(this).attr("value");
 			socket.emit('load more messages', c++);
-			$(this).attr("value",c);
+			$(this).attr("value", c);
 		});
 
-		$(document).on('click', '#userlist li', function(){
+		$(document).on('click', '#userlist li', function () {
 			var user = {
 				id: $(this).attr('id'),
 				username: $(this).text()
@@ -269,20 +278,20 @@
 			if (user.username != 'you') {
 				// console.log(user);
 				socket.emit('new dual chat', user);
-			}else {
+			} else {
 				showKKBar('find friends, don\'t chat with yourself', 3000);
 			}
 		});
 
 
-		$('#m').on('keypress', function(e){
-			if (e.keyCode==13) {
+		$('#m').on('keypress', function (e) {
+			if (e.keyCode == 13) {
 				$("#sendbtn").trigger('click');
 				e.preventDefault();
 			};
 		});
 
-		$('#messageForm').submit(function(){
+		$('#messageForm').submit(function () {
 			var msg = $('#m').val();
 			var date = new Date();
 			if (msg != "") {
@@ -293,29 +302,29 @@
 			return false;
 		});
 
-		$('#add-chat').on('click', function(){
+		$('#add-chat').on('click', function () {
 			// load all users
 			socket.emit('load main chat users');
 		});
-			
-		$('#submit-newchat').on('click',function(){
+
+		$('#submit-newchat').on('click', function () {
 			$('#newChatForm').submit();
 		})
 
-		$('#submit-edituser').on('click',function(){
+		$('#submit-edituser').on('click', function () {
 			$('#editUserForm').submit();
 		})
 
-		$('#newChatForm').submit(function(){
+		$('#newChatForm').submit(function () {
 			var chatname = $('#chat-name').val();
-			var selectedusers = []; 
+			var selectedusers = [];
 			var selectedusernames = [];
-			$('#select-users :selected').each(function(i, selected){ 
-				selectedusers[i] = $(selected).attr('value'); 
-				selectedusernames[i] = $(selected).text(); 
+			$('#select-users :selected').each(function (i, selected) {
+				selectedusers[i] = $(selected).attr('value');
+				selectedusernames[i] = $(selected).text();
 			});
 
-			if (selectedusers.length==1) {
+			if (selectedusers.length == 1) {
 				var user = {
 					id: selectedusers[0],
 					username: selectedusernames[0]
@@ -327,9 +336,9 @@
 				$('#newChatModal').modal('hide')
 			};
 
-			if (chatname!=''&&selectedusers.length>0) {
+			if (chatname != '' && selectedusers.length > 0) {
 				var data = {
-					chatname : chatname,
+					chatname: chatname,
 					selectedusers: selectedusers
 				}
 				console.log(data);
@@ -341,18 +350,18 @@
 			return false;
 		})
 
-		$('#editUser').on('click',function(){
-			if(userrole != "admin"){
+		$('#editUser').on('click', function () {
+			if (userrole != "admin") {
 				$('#updatedUserRole').prop('disabled', true);
 			}
 			var username = $('#editUser').text().trim();
 			var url = `api/user/${username}`;
 			$.ajax({
 				url: url,
-				method:"GET",
-				success: function(result) {
+				method: "GET",
+				success: function (result) {
 					var resultMessages = result.message;
-					if(resultMessages && resultMessages.length > 0){
+					if (resultMessages && resultMessages.length > 0) {
 						$('#updatedUserPassword').val('');
 						$('#updatedUserColor').val(resultMessages[0].color);
 						$('#updatedUserRole').val(resultMessages[0].role);
@@ -360,41 +369,41 @@
 				}
 			})
 		});
-		$('#editUserForm').submit(function(){
+		$('#editUserForm').submit(function () {
 			var password = $('#updatedUserPassword').val();
 			var color = $('#updatedUserColor').val();
 			var role = $('#updatedUserRole').val();
 
 			var data = {
-				password : password,
-				color : color,
-				role : role
+				password: password,
+				color: color,
+				role: role
 			}
 			$('#updatedUserPassword').val('');
 			$('#updatedUserColor').val('');
 			$('#updatedUserRole').val('');
 			socket.emit('update user', data);
 			$('#editUserModal').modal('hide');
-			
+
 			return false;
 		})
 
-		$('#searchButton').on('click',function(){
+		$('#searchButton').on('click', function () {
 			var q = $("#searchQueryBox").val();
 			var cid = $("#chatId").html();
 			var url = `api/chat/${cid}/search?query=${q}`;
 			$.ajax({
 				url: url,
-				method:"GET",
-				success: function(result) {
+				method: "GET",
+				success: function (result) {
 					var resultMessages = result.message;
-					if(resultMessages && resultMessages.length > 0){
+					if (resultMessages && resultMessages.length > 0) {
 						msgsByID.empty();
 						for (var i = 0; i < resultMessages.length; i++) {
-							addMessage(meuser,resultMessages[i]._id, resultMessages[i].sender, resultMessages[i].message, new Date(resultMessages[i].date))
+							addMessage(meuser, resultMessages[i]._id, resultMessages[i].sender, resultMessages[i].message, new Date(
+								resultMessages[i].date))
 						};
-					}
-					else {
+					} else {
 						$('#messages').append($('<li class="alertbox text-center">').html('<small>no messages matched.</small>'));
 					}
 				}
@@ -410,10 +419,10 @@
 		//         // https://www.youtube.com/watch?v=wXLa5tprhLc
 		//         // <iframe width="560" height="315" src="https://www.youtube.com/embed/wXLa5tprhLc" frameborder="0" allowfullscreen></iframe>
 		//         var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\?v=)([^#\&\?]*).*/;
-  	//           	var match = text.match(regExp);
+		//           	var match = text.match(regExp);
 		//         // if (match && match[2].length == 11) {
-	 	//         //        $('#ytplayerSide').attr('src', 'https://www.youtube.com/embed/' + match[2] + '?autoplay=0');
-	 	//         //    }
+		//         //        $('#ytplayerSide').attr('src', 'https://www.youtube.com/embed/' + match[2] + '?autoplay=0');
+		//         //    }
 		//     }, 100);
 		// });
 
@@ -425,108 +434,115 @@
 		//   	o.style.height = (o.scrollHeight)+"px";
 		//   }
 		// }
-   })
+	})
 </script>
 <ul id="kitkat">
 </ul>
 <div id="chatcontainer" class="row">
 	<div class="col-sm-3">
-	  <div class="panel panel-default">
-	    <div class="panel-heading" id="userchats">
-	      {{#if user}}
-          <h3 class="panel-title" id="editUser" data-toggle="modal" data-target="#editUserModal" >
-						<a>{{user.username}}</a>
-					</h3>
-          <a href="/users/logout" style="margin-right:15px" class="navbar-link">logout</a> 
+		<div class="panel panel-default">
+			<div class="panel-heading" id="userchats">
+				{{#if user}}
+				<h3 class="panel-title" id="editUser" data-toggle="modal" data-target="#editUserModal">
+					<a>{{user.username}}</a>
+				</h3>
+				<a href="/users/logout" style="margin-right:15px" class="navbar-link">logout</a>
 				{{else}}
-          <h3 class="panel-title" >login first</h3>
+				<h3 class="panel-title">login first</h3>
 				{{/if}}
-	      <div id="add-chat" data-toggle="modal" data-target="#newChatModal">+</div>
-	      <span id="chatNo">5 chats</span>
-	    </div>
-	    <ul id="user-chats" class="list-group">
-	    	<li class="list-group-item">no chats for you</li>
-	    </ul>
-	  </div>
+				<div id="add-chat" data-toggle="modal" data-target="#newChatModal">+</div>
+				<span id="chatNo">5 chats</span>
+			</div>
+			<ul id="user-chats" class="list-group">
+				<li class="list-group-item">no chats for you</li>
+			</ul>
+		</div>
 	</div>
 
 	<div class="col-sm-9">
-	  <div class="panel panel-default messages">
-	    <div class="panel-heading">
-	      <h3 class="panel-title" id="chatName">Chat room</h3>
+		<div class="panel panel-default messages">
+			<div class="panel-heading">
+				<h3 class="panel-title" id="chatName">Chat room</h3>
 				<span id="chatId" hidden></span>
 				<div class="panel-search">
 					<input type="text" name="search" id="searchQueryBox">
 					<button id="searchButton">search</button>
 				</div>
-	      <ul id="userlist">
-	      </ul>
-	    </div>
-	    <div class="panel-body">
-	      <ul id="messages" class="media-list"></ul>
-	    </div>
-	    <div class="panel-footer">
-	      <form id="messageForm" action="">
-	        <div class="row">
-	          <div class="col-sm-12">
-	            <div class="form-group">
-	              <textarea class="form-control" id="m" placeholder="message" style="overflow:hidden" autofocus></textarea>
-	            </div>
-	            <button id="sendbtn" type="submit" class="btn btn-primary"><img src="/images/sendbtn.png"></button>
-	          </div>
-	          <!-- <div class="col-sm-2">
+				<ul id="userlist">
+				</ul>
+			</div>
+			<div class="panel-body">
+				<ul id="messages" class="media-list"></ul>
+			</div>
+			<div class="panel-footer">
+				<form id="messageForm" action="">
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="form-group">
+								<textarea class="form-control" id="m" placeholder="message" style="overflow:hidden" autofocus></textarea>
+							</div>
+							<button id="sendbtn" type="submit" class="btn btn-primary">
+								<img src="/images/sendbtn.png">
+							</button>
+						</div>
+						<!-- <div class="col-sm-2">
 	          </div> -->
-	        </div>
-	      </form>
-	    </div>
-	  </div>
+					</div>
+				</form>
+			</div>
+		</div>
 	</div>
 
 	<!-- Modal -->
 	<div class="modal fade" id="newChatModal" tabindex="-1" role="dialog" aria-labelledby="newChatModalLabel">
-	  <div class="modal-dialog" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-	        <h4 class="modal-title" id="newChatModalLabel">New Chat</h4>
-	      </div>
-	      <div class="modal-body">
-	        <form id="newChatForm" action="">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="newChatModalLabel">New Chat</h4>
+				</div>
+				<div class="modal-body">
+					<form id="newChatForm" action="">
 						<div class="form-group">
 							<label for="chat-name">chat name</label>
 							<input class="form-control" id="chat-name" placeholder="name">
 						</div>
 						<div class="form-group">
 							<label for="select-users">users</label>
-							<select id="select-users" class="form-control selectpicker" title="you can choose 20 users max" multiple data-live-search="true" data-max-options="20" data-size="7" data-selected-text-format="count > 4">
-							<option value="">1</option>
-							<option value="">2</option>
-							<option value="">3</option>
-							<option value="">4</option>
-							<option value="">5</option>
-							<option value="">6</option>
-							<option value="">7</option>
-							<option value="">8</option>
-						</select>
+							<select id="select-users" class="form-control selectpicker" title="you can choose 20 users max" multiple data-live-search="true"
+							    data-max-options="20" data-size="7" data-selected-text-format="count > 4">
+								<option value="">1</option>
+								<option value="">2</option>
+								<option value="">3</option>
+								<option value="">4</option>
+								<option value="">5</option>
+								<option value="">6</option>
+								<option value="">7</option>
+								<option value="">8</option>
+							</select>
 						</div>
 					</form>
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	        <button id="submit-newchat" type="button" class="btn btn-primary">Save changes</button>
-	      </div>
-	    </div>
-	  </div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button id="submit-newchat" type="button" class="btn btn-primary">Save changes</button>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel">
-	  <div class="modal-dialog" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-	        <h4 class="modal-title" id="editUserModalLabel">Edit User</h4>
-	      </div>
-	      <div class="modal-body">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="editUserModalLabel">Edit User</h4>
+				</div>
+				<div class="modal-body">
 					<form id="editUserForm" action="">
 						<div class="form-group">
 							<label for="updatedUserPassword">Password</label>
@@ -539,24 +555,26 @@
 						<div class="form-group">
 							<label for="cp2">Color</label>
 							<div id="cp2" class="input-group colorpicker-component">
-									<input type="text" id="updatedUserColor" name="color" value="#00AABB" class="form-control" />
-									<span class="input-group-addon"><i></i></span>
+								<input type="text" id="updatedUserColor" name="color" value="#00AABB" class="form-control" />
+								<span class="input-group-addon">
+									<i></i>
+								</span>
 							</div>
 							<script>
-									$(function() {
-											$('#cp2').colorpicker({
-												format:'hex'
-											});
+								$(function () {
+									$('#cp2').colorpicker({
+										format: 'hex'
 									});
+								});
 							</script>
 						</div>
 					</form>
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	        <button id="submit-edituser" type="button" class="btn btn-primary">Save changes</button>
-	      </div>
-	    </div>
-	  </div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button id="submit-edituser" type="button" class="btn btn-primary">Save changes</button>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>

@@ -84,8 +84,9 @@ var sessionMware = session({
 	store: sessionStore, 
 	secret: 'sessionSecret', 
 	resave: false,
+	expires: new Date(Date.now() + (60* 60 * 1000)),
 	saveUninitialized: true,
-	cookie: {maxAge: 1000*60*60*24}
+	cookie: {maxAge: 1000*60*60}
 });
 
 app.use(sessionMware);

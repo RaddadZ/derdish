@@ -37,24 +37,29 @@ UserSchema.methods.getChats = function(callback) {
 var User = module.exports = mongoose.model('User',UserSchema);
 
 module.exports.createUser = function(newUser, callback) {
-	newUser.save(callback); 
-	// bcrypt.genSalt(10, function(err, salt) {
-    // 	bcrypt.hash(newUser.password, salt, function(err, hash) {
-    //     	newUser.password = hash;
-    //     	newUser.save(callback); 
-    // 	});
-	// });
+	// newUser.save(callback); 
+	bcrypt.genSalt(10, function(err, salt) {
+    	bcrypt.hash(newUser.password, salt, function(err, hash) {
+        	newUser.password = hash;
+        	newUser.save(callback);
+    	});
+	});
 }
 
 module.exports.updateUser = function(userid, password, color,role, callback) {
-	var query = {_id:userid},
-		update = { 
-			password : password,
-	    	color : color,
-	    	role : role
-	    },	    
-	    options = { new: true };
-	User.findOneAndUpdate(query, update, options, callback);
+	bcrypt.genSalt(10, function(err, salt) {
+    	bcrypt.hash(password, salt, function(err, hash) {
+			var query = {_id:userid},
+			update = { 
+				password : hash,
+				color : color,
+				role : role
+			},	    
+			options = { new: true };
+			User.findOneAndUpdate(query, update, options, callback);
+		});
+	});
+	
 }
 
 module.exports.removeChat = function (chatid){
@@ -67,10 +72,10 @@ module.exports.removeChat = function (userid, chatid){
 }
 
 module.exports.getUserByUsername = function(username, callback) {
-	var query = {
-		$where: "this.username === '" + username + "'"
-	};
-	User.find(query,callback);
+	// var query = {
+	// 	$where: "this.username === '" + username + "'"
+	// };
+	User.findOne({username: username},callback);
 }
 
 module.exports.getUserById = function(id, callback) {
@@ -88,6 +93,7 @@ module.exports.addChat = function(id, chat, callback) {
 
 
 module.exports.comparePassword = function(candidatePassword, hash, callback) {
+	console.log("compare pass: "+candidatePassword+" "+ hash);
 	bcrypt.compare(candidatePassword, hash, callback);
 }
 

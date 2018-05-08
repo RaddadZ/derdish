@@ -349,40 +349,39 @@ router.post('/register', function(req, res) {
 
 router.post('/authenticate', function(req, res) {
   console.log('entered authenticate %s',req.body.username);
-  User.authUsernamePassword(req.body.username, req.body.password, function(err, user){
-    console.log("*** username password ***\n"+user);
-    if(user){
-      var token = jwt.sign({id: user._id, username: user.username }, 'jwtokenSecret', {
-                  expiresIn: 94670777 // in seconds
-      });
-      res.json({ success: true, token: 'JWT ' + token});
-    }
-    else {
-      res.send({ success: false, message: 'Authentication failed.' });
-    }
-  });
-
-  // User.getUserByUsername(req.body.username, function(err, user){
-  //   if (err) throw err;
-  //   if (!user) {
-  //     res.send({ success: false, message: 'Authentication failed. User not found.'+user });
-  //   }
-  //   else{
-  //     // if no prob it will continue
-  //     User.comparePassword(req.body.password, user.password,function(err,isMatch){
-  //       if (err) throw err;
-  //       if (isMatch) {
-  //         // Create token if the password matched and no error was thrown
-  //         var token = jwt.sign({id: user._id, username: user.username }, 'jwtokenSecret', {
-  //           expiresIn: 10800 // in seconds
-  //         });
-  //         res.json({ success: true, token: 'JWT ' + token});
-  //       } else {
-  //         res.send({ success: false, message: 'Authentication failed. Passwords did not match.' });
-  //       }
+  // User.authUsernamePassword(req.body.username, req.body.password, function(err, user){
+  //   console.log("*** username password ***\n"+user);
+  //   if(user){
+  //     var token = jwt.sign({id: user._id, username: user.username }, 'jwtokenSecret', {
+  //                 expiresIn: 94670777 // in seconds
   //     });
+  //     res.json({ success: true, token: 'JWT ' + token});
   //   }
-  // })
+  //   else {
+  //     res.send({ success: false, message: 'Authentication failed.' });
+  //   }
+  // });
+  User.getUserByUsername(req.body.username, function(err, user){
+    if (err) throw err;
+    if (!user) {
+      res.send({ success: false, message: 'Authentication failed. User not found.'+user });
+    }
+    else{
+      // if no prob it will continue
+      User.comparePassword(req.body.password, user.password,function(err,isMatch){
+        if (err) throw err;
+        if (isMatch) {
+          // Create token if the password matched and no error was thrown
+          var token = jwt.sign({id: user._id, username: user.username }, 'jwtokenSecret', {
+            expiresIn: 10800 // in seconds
+          });
+          res.json({ success: true, token: 'JWT ' + token});
+        } else {
+          res.send({ success: false, message: 'Authentication failed. Passwords did not match.' });
+        }
+      });
+    }
+  })
 });
 
 
@@ -411,13 +410,17 @@ function createChat(name, max, users, callback){
   });
 }
 
+function encodeHTML(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+}
+
 function pushNewMessageToActiveChat(chatid, senderUsername, msg, callback){
     Chat.getChatById(chatid, function(err, chat){
       if (err) {return};
       var newMessage = new Message();
 			newMessage.chat = socket.activeChat.id;
 			newMessage.sender= username;
-			newMessage.message= ms;
+			newMessage.message= encodeHTML(msg);
       newMessage.save(function(err,savedmsg){
 				if (err) {return};
 				chat.addMessage(savedmsg, callback);

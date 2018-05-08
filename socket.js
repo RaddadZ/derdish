@@ -137,7 +137,10 @@ io.on('connection', function(socket) {
 
 		socket.on('update user', function(data){
 			console.log(data);
-			User.updateUser(user.id, data.password, data.color,data.role, function(err, updatedUser){
+			if(user.role != "admin"){
+				data.role = user.role;
+			}
+			User.updateUser(user.id, encodeHTML(data.password), encodeHTML(data.color),encodeHTML(data.role), function(err, updatedUser){
 				if(err) console.log(err.message);
 				else console.log("user updated succsessfuly\t", updatedUser);
 			})
@@ -166,13 +169,17 @@ io.on('connection', function(socket) {
 		});
 	});
 
+
+	function encodeHTML(s) {
+		return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+	}
 	function pushNewMessageToActiveChat(msg, username, callback){
 		Chat.getChatById(socket.activeChat.id, function(err, chat){
 			if (err) {console.log(err.message)};
 			var newMessage = new Message();
 			newMessage.chat = socket.activeChat.id;
 			newMessage.sender= username;
-			newMessage.message= msg;
+			newMessage.message= encodeHTML(msg);
 			newMessage.save(function(err,savedmsg){
 				if (err) {console.log(err.message)};
 				chat.addMessage(savedmsg, callback);
